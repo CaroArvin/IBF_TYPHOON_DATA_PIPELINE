@@ -104,11 +104,11 @@ parBox=[5,115,25,135]
 
 start_time = datetime.now()
 
-ecmwf_remote_directory='20221027180000'#'20221014000000'#''#(start_time - timedelta(hours=24)).strftime("%Y%m%d120000")
-Active_Typhoon_event_list=['NALGAE']
+#ecmwf_remote_directory='20221027180000'#'20221014000000'#''#(start_time - timedelta(hours=24)).strftime("%Y%m%d120000")
+#Active_Typhoon_event_list=['NALGAE']
 
-#ecmwf_remote_directory=None
-#Active_Typhoon_event_list=[]
+ecmwf_remote_directory=None
+Active_Typhoon_event_list=[]
 High_resoluation_only_Switch=False
 
 
