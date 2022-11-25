@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: ibf-typhoon-pipeline
+  IMAGE_NAME: ibf-typhoon-pipeline-caro
 
 
 jobs:
