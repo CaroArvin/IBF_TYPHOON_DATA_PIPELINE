@@ -13,4 +13,3 @@ services:
       #- $TYPHOONMODEL_OUTPUT:/home/fbf
     #command: run-typhoon-model  --typhoonname="RAI" --remote_directory='20211214000000'
     command: run-typhoon-model
-
