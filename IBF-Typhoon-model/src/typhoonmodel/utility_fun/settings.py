@@ -1,10 +1,11 @@
 import os
 from datetime import datetime, timedelta
 import shutil
+from pathlib import Path
 ##################
 ## LOAD SECRETS ##
 ##################
-
+'''
 # 1. Try to load secrets from Azure key vault (i.e. when running through Logic App) if user has access
 try:
     from azure.identity import DefaultAzureCredential
@@ -52,12 +53,10 @@ try:
     DATALAKE_API_VERSION = '2021-06-08'
     #DATALAKE_STORAGE_ACCOUNT_KEY_IBFSYSTEM = os.environ["DATALAKE_STORAGE_ACCOUNT_KEY2"]
     
-    
-    
-    
 except Exception as e:
     print('No environment variables found.')
-
+    
+''' 
 # 3. If 1. and 2. both fail, then assume secrets are loaded via secrets.py file (when running locally). If neither of the 3 options apply, this script will fail.
 try:
     from typhoonmodel.utility_fun.secrets import *
@@ -88,91 +87,15 @@ SETTINGS_SECRET = {
 }
 
 
-#### PAR SETTINGS
-'''
-This is the smallest and innermost monitoring domain, whose boundary is closest to the Philippine Islands.
-The exact dimensions of this domain are the area of the Western North Pacific bounded by imaginary lines 
-connecting the coordinates: 5°N 115°E, 15°N 115°E, 21°N 120°E, 25°N 120°E, 25°N 135°E and 5°N 135°E. 
-The western boundary of the PAR is closer to the coastline of the country than the eastern boundary.
-The eastern PAR boundary is several hundred kilometers away from the nearest coastline in the eastern part 
-of the country and completely encloses the East Philippine Sea. Tropical Cyclones inside the PAR warrants the
-issuance of Severe Weather Bulletin, the highest level of warning information issued for tropical cyclones.
-'''
-parBox=[5,115,25,135]
-
-
-start_time = datetime.now()
-
-#ecmwf_remote_directory='20221027180000'#'20221014000000'#''#(start_time - timedelta(hours=24)).strftime("%Y%m%d120000")
-#Active_Typhoon_event_list=['NALGAE']
-
-ecmwf_remote_directory=None
-Active_Typhoon_event_list=[]
-High_resoluation_only_Switch=False
-
-
-typhoon_event_name=None
-
-ECMWF_CORRECTION_FACTOR=1
-
-ECMWF_LATENCY_LEADTIME_CORRECTION=10 
-longtiude_limit_leadtime=120 # if track pass this point consider it has made landfall 
-
-WIND_SPEED_THRESHOLD=0
-Wind_damage_radius=300 #will be updated based on maximum_radius varaible from model 
-Show_Areas_on_IBF_radius=400
-
-Alternative_data_point = (start_time - timedelta(hours=24)).strftime("%Y%m%d")  
-data_point = start_time.strftime("%Y%m%d")      
- 
- 
- 
-###################
-## PATH SETTINGS ##
-###################
-
-
-MAIN_DIRECTORY='/home/fbf/'
-
-#MAIN_DIRECTORY='C:/Users/ATeklesadik/OneDrive - Rode Kruis/Documents/documents/IBF_TYPHOON_DATA_PIPELINE/IBF-Typhoon-model/'
-
-ADMIN_PATH =MAIN_DIRECTORY+'data/gis_data/phl_admin3.geojson'
-ADMIN4_PATH =MAIN_DIRECTORY+'data/gis_data/adm4_centers.geojson'
-
-maxDistanceFromCoast=2000 # max (km) distance to consider lead time calculation 
-
-PRE_DISASTER_INDICATORS = MAIN_DIRECTORY+'data/pre_disaster_indicators/all_predisaster_indicators.csv'
-CENTROIDS_PATH = MAIN_DIRECTORY+'data/gis_data/centroids_windfield.geojson' 
- 
-Input_folder = MAIN_DIRECTORY+ 'forecast/Input/'
-Output_folder = MAIN_DIRECTORY+ 'forecast/Output/'
-ECMWF_folder = Input_folder+'ECMWF/'
-rainfall_path =MAIN_DIRECTORY+ 'forecast/rainfall/' 
-
-mock_data_path = MAIN_DIRECTORY+'data/mock/'
-ML_model_input = MAIN_DIRECTORY+'data/model_input/df_modelinput_july.csv'
-
-
-for dir_path in [Input_folder,Output_folder,rainfall_path]:
-    if os.path.exists(dir_path):
-        shutil.rmtree(dir_path)
-        os.makedirs(dir_path)
-    else:
-        os.makedirs(dir_path)
-
-
-
-
-
-    
-    
-Population_Growth_factor=1.15 #(1+0.02)^7 adust 2015 census data by 2%growth for the pst 7 years 
-
-Housing_unit_correction={'year':['2006','2007','2008','2009','2010','2011','2012','2013','2014','2015','2016','2017','2018','2019','2020','2021','2022'],
-                        'facor':[0.88,0.89,0.91,0.92,0.93,0.95,0.96,0.97,0.99,1.00,1.01,1.03,1.04,1.06,1.07,1.09,1.10]}
-
 
 #Trigger Values
+EAPTrigger='Average' #Average
+
+dref_probabilities_10 = {
+            "50": [50,'Moderate'],
+            "70": [70,'High'],
+            "90":[90,'Very High'],
+        }
 
 dref_probabilities = {
     "100k": [100000, 0.5],
@@ -181,11 +104,6 @@ dref_probabilities = {
     "50k": [50000, 0.8],
     "30k": [30000, 0.95],
 }
-dref_probabilities_10 = {
-            "33": [33,'Moderate'],
-            "50": [50,'High'],
-            "70":[70,'Very High'],
-        }
         
 cerf_probabilities = {
     "80k": [80000, 0.5],
@@ -217,3 +135,119 @@ START_probabilities = {
         "30k": [30000, 0.6],
         "40k": [40000, 0.5],
         }, }
+
+#### PAR SETTINGS
+'''
+This is the smallest and innermost monitoring domain, whose boundary is closest to the Philippine Islands.
+The exact dimensions of this domain are the area of the Western North Pacific bounded by imaginary lines 
+connecting the coordinates: 5°N 115°E, 15°N 115°E, 21°N 120°E, 25°N 120°E, 25°N 135°E and 5°N 135°E. 
+The western boundary of the PAR is closer to the coastline of the country than the eastern boundary.
+The eastern PAR boundary is several hundred kilometers away from the nearest coastline in the eastern part 
+of the country and completely encloses the East Philippine Sea. Tropical Cyclones inside the PAR warrants the
+issuance of Severe Weather Bulletin, the highest level of warning information issued for tropical cyclones.
+'''
+parBox=[5,115,25,135]
+
+
+start_time = datetime.now()
+### to run data pipeline for a specific event
+#ecmwf_remote_directory='20221027000000'#'20221014000000'#''#(start_time - timedelta(hours=24)).strftime("%Y%m%d120000")
+#Active_Typhoon_event_list=['NALGAE']
+
+
+### to run data pipeline for a specific event
+ecmwf_remote_directory=None
+Active_Typhoon_event_list=[]
+
+High_resoluation_only_Switch=False
+
+if ecmwf_remote_directory==None:
+    forecastTime=datetime.utcnow()
+else:
+    forecastTime=datetime.strptime(ecmwf_remote_directory, "%Y%m%d%H%M%S")
+
+
+typhoon_event_name=None
+
+ECMWF_CORRECTION_FACTOR=1
+
+ECMWF_LATENCY_LEADTIME_CORRECTION=10 
+longtiude_limit_leadtime=120 # if track pass this point consider it has made landfall 
+
+WIND_SPEED_THRESHOLD=0
+Wind_damage_radius=300 #will be updated based on maximum_radius varaible from model 
+Show_Areas_on_IBF_radius=400
+
+Alternative_data_point = (start_time - timedelta(hours=24)).strftime("%Y%m%d")  
+data_point = start_time.strftime("%Y%m%d")      
+ 
+ 
+ 
+###################
+## PATH SETTINGS ##
+###################
+
+
+MAIN_DIRECTORY='/home/fbf/'
+
+
+#MAIN_DIRECTORY ='./'# str(Path(__file__).parent.absolute())
+
+ 
+
+#MAIN_DIRECTORY='C:/Users/ATeklesadik/OneDrive - Rode Kruis/Documents/documents/IBF_TYPHOON_DATA_PIPELINE/IBF-Typhoon-model/'
+
+ADMIN_PATH =MAIN_DIRECTORY+'data/gis_data/phl_admin3.geojson'
+ADMIN4_PATH =MAIN_DIRECTORY+'data/gis_data/adm4_centers.geojson'
+
+ADMIN3_PATH = MAIN_DIRECTORY+'data/gis_data/adm3_centers.csv'
+maxDistanceFromCoast=2000 # max (km) distance to consider lead time calculation 
+
+PRE_DISASTER_INDICATORS = MAIN_DIRECTORY+'data/pre_disaster_indicators/all_predisaster_indicators.csv'
+CENTROIDS_PATH = MAIN_DIRECTORY+'data/gis_data/centroids_windfield.geojson' 
+ 
+Input_folder = MAIN_DIRECTORY+ 'forecast/Input/'
+Output_folder = MAIN_DIRECTORY+ 'forecast/Output/'
+ECMWF_folder = Input_folder+'ECMWF/'
+
+rainfall_path =MAIN_DIRECTORY+ 'forecast/rainfall/' 
+
+mock_data_path = MAIN_DIRECTORY+'data/mock/'
+ML_model_input = MAIN_DIRECTORY+'data/model_input/df_modelinput_july.csv'
+logoPath = MAIN_DIRECTORY+'/data/logos/combined_logo.png'
+
+
+for dir_path in [Input_folder,Output_folder,rainfall_path]:
+    if os.path.exists(dir_path):
+        shutil.rmtree(dir_path)
+        os.makedirs(dir_path)
+    else:
+        os.makedirs(dir_path)
+
+
+readmefilePath=os.path.join(Output_folder, "readme.txt")
+
+
+lines = ['Readme\n',
+         '1.In the csv file *_admin3_leadtime.csv column name Potential_leadtime refers to\n  the time until the typhoon reaches the point closest to this municipality',
+         '',
+         '2.In the csv file *_dref_trigger_status_10_percent.csv column name\n\t Threshold =\t\t The name of EAP threshold (based on probability or Average)\n\t Scenario=\t\t probability values for the threshold (NA for average)\n\t Trigger status=\t If EAP will be activated based on the specific scenario',
+         '']
+
+
+
+with open(readmefilePath, 'w') as f:
+    for line in lines:
+        f.write(line)
+        f.write('\n')
+        
+        
+    
+    
+Population_Growth_factor=1.15 #(1+0.02)^7 adust 2015 census data by 2%growth for the pst 7 years 
+
+Housing_unit_correction={'year':['2006','2007','2008','2009','2010','2011','2012','2013','2014','2015','2016','2017','2018','2019','2020','2021','2022'],
+                        'facor':[0.88,0.89,0.91,0.92,0.93,0.95,0.96,0.97,0.99,1.00,1.01,1.03,1.04,1.06,1.07,1.09,1.10]}
+
+
+

@@ -104,9 +104,9 @@ def main():
                 db.sendNotificationTyphoon()
 
             else:
-                output_folder=Output_folder
-                active_Typhoon_event_list=Active_Typhoon_event_list
-                fc = Forecast(ecmwf_remote_directory,output_folder, active_Typhoon_event_list,countryCodeISO3, admin_level)
+                #output_folder=Output_folder
+                #active_Typhoon_event_list=Active_Typhoon_event_list
+                fc = Forecast(countryCodeISO3, admin_level)
                 logger.info('_________________finished data processing______________')
                 
                 if fc.Activetyphoon_landfall: #if it is not empty
@@ -117,14 +117,21 @@ def main():
                             # upload data
                             json_path = fc.Output_folder  + typhoon_names  
                             #EAP_TRIGGERED_bool=fc.eap_status_bool[typhoon_names]
-                            #EAP_TRIGGERED=fc.eap_status[typhoon_names]                                               
-                            fc.db.uploadTrackData(json_path)            
-                            fc.db.uploadTyphoonData(json_path) 
-                            fc.db.sendNotificationTyphoon() 
-                            fc.db.postResulToDatalake()
+                            #EAP_TRIGGERED=fc.eap_status[typhoon_names]                                              
+                            states=fc.db.postResulToDatalake()
                             forecast_directory=typhoon_names + fc.forecast_time
                             fc.db.postDataToDatalake(datalakefolder=forecast_directory)
                             fc.db.postDataToDatalake(datalakefolder=typhoon_names)
+                            fc.db.uploadTrackData(json_path) 
+                            fc.db.uploadTyphoonData(json_path)                             
+                            #fc.db.uploadImage(typhoons=typhoon_names,eventName=typhoon_names)
+                            fc.db.sendNotificationTyphoon() 
+                            try:
+                                if states==1:
+                                    logger.info('posting to skype')
+                                    fc.db.postResulToSkype(skypUsername,skypPassword,channel_id)                                    
+                            except:
+                                pass
                             
                         elif fc.Activetyphoon_landfall[typhoon_names]=='madelandfall':
                             logger.info(f'typhoon{typhoon_names} already made landfall getting data for previous model run')   
@@ -220,7 +227,7 @@ def main():
         logger.error("Typhoon Data PIPELINE ERROR")
         logger.error(e)
     #elapsedTime = str(time.time() - start_time)
-    logger.info('simulation finished')#str(elapsedTime))
+    #logger.info('simulation finished')#str(elapsedTime))
     
  
  
